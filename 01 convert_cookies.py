@@ -14,7 +14,7 @@ print infilename
 reader=csv.reader(inf, delimiter='\t')
 for row in reader:
     ob_id = abs(int(row[0]))
-    info = sorted(row[1].split(';')) #why sort here ?
+    info = sorted(row[1].split(';')) 
     #info = row[1].split(';')
     #should make alist of strings here
     age, gender, income, education, employment, children, household = 'unknown', 'unknown', 'unknown', 'unknown', 'unknown', 'unknown', 'unknown'
