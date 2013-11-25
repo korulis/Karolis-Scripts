@@ -3,28 +3,37 @@ import sys
 from collections import Counter
 from math import log
 
+lookupcat = ['cookieID', 'age', 'gender', 'income', 'education', 'employment', 'children','household', 'OS', 'browser']
+##2132906983,55,male,high,nonuniversity,employed,no,2,Windows,Microsoft Internet Explorer
+##2128669223,55,female,low,nonuniversity,other,no,1,Windows,Microsoft Internet Explorer
+##2107079663,55,female,low,nonuniversity,other,no,1,Windows,Microsoft Internet Explorer
+
+
 def write_lifts_to_file(valtable,out_filename='male_lifts.csv', nTop = 10):
     print 'Working on writing to file '+out_filename+' ...'
     outf=open(out_filename,'w')
     writer=csv.writer(outf)
     list1, list2,list3, list4=[],[],[],[]    
+    cnt=0
     for i in valtable:
-        print i
+        cnt += 1
+        if cnt == 1 or cnt == 2:
+            continue
         for j in i:
-            list1.append(j)
+            list1.append(lookupcat[cnt]+'_'+j)
             list2.append(i[j])    
     indices = [i[0] for i in sorted(enumerate(list2), key=lambda x:x[1])]
     indices.reverse()
     for i in range(nTop):
         list3.append(list1[indices[i]])
         list4.append(list2[indices[i]])
-    print list1
-    print list2
-    print list3
-    print list4
-    sys.exit()
-    writer.writerow(list3)
-    writer.writerow(list4)
+##    print list1
+##    print list2
+##    print list3
+##    print list4
+##    sys.exit()
+    for i in range(nTop):
+        writer.writerow([str(i),list3[i],list4[i]])
     outf.close()
     print 'done'
 
