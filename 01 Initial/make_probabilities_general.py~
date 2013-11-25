@@ -1,0 +1,250 @@
+import csv
+import sys
+from collections import Counter
+from math import log
+from pylab import * 
+
+
+def plotROC(fallout, recall, shouldShow = True , aucstr = ''):
+    p1 = plot(fallout, recall)
+    xlabel('fallout')
+    ylabel('Recall')
+    title('ROC with ' + aucstr)
+    grid(True)
+    t=arange(0, 1.1, 0.5)
+    p2=plot(t, t, 'r--')
+#    legend([p2], ['ROC with AUC ' + aucstr + '.png'])
+    savefig('ROC with ' + aucstr + '.png')
+    if shouldShow:
+        show()
+
+
+def saveFalloutsAndRecallsToFile(fallouts, recalls, aucstr = ''):
+    data=np.array([fallouts,recalls])
+    np.savetxt('FalloutsAndRecallsWith ' + aucstr + '.csv', data, delimiter=',')
+
+
+
+def write_label_table_to_file(label_table,out_filename):
+    print 'Working on writing to file '+out_filename+' ...'
+    outf= open(out_filename,'w')
+    writer = csv.writer(outf)
+    for i in range(1,len(label_table)):
+        writer.writerow(label_table[i])
+    outf.close()
+    print 'Done writing to'+out_filename
+
+def make_histograms(val_table):
+    print 'Making histograms...'
+    infile = open('cookie_table_of_labels.csv','r')
+    contents=infile.readlines()
+    data_dimension=len(val_table)
+    histograms = [[] for i in range(data_dimension-1) ]
+	print val_table
+	sys.exit()
+    val_table[-1]=[val_table[-1][i][:-2] for i in range(len(val_table[-1]))]
+    if (len(contents)+1)!=data_dimension:
+        print 'Make histograms: invalid table dimensions'
+        sys.exit()
+    for j in range(data_dimension-1):
+        histograms[j]=dict()
+        curline=contents[j].split(',')
+        curline[-1]=curline[-1][:-2]
+        cnt=Counter(val_table[j+1])
+        suma=sum(cnt.values())
+        for i in curline:
+            if i in cnt.keys():
+                histograms[j][i]=float(cnt[i])/suma
+            else:
+                histograms[j][i]=0
+    infile.close()
+    print 'Done making histograms'   
+    return histograms
+
+def make_value_table(in_filename='cookies_learn.csv',out_filename='somename.csv'):
+    print ' Making value table from ' ,in_filename
+    inf=  open(in_filename, 'r')
+    contents = inf.readlines()
+    inf.close()
+    data_dimension =len(contents[0].split(','))
+    val_table = [[] for i in range(data_dimension) ]
+    print val_table, 'empty val_table', data_dimension
+    for i in contents:
+        cur_line =i.split(',')
+        for j in range(data_dimension):
+            val_table[j].append(cur_line[j])
+    val_table = [sorted(val_table[i]) for i in range(data_dimension)]
+    #print set(val_table[0]),' ciaprintas'
+    print ' Done making value table'
+    return val_table
+
+#making histograms here
+#val_table=make_value_table('converted_cookies.csv')
+val_table=make_value_table('cookies_learn.csv')
+indi_hist=make_histograms(val_table)
+#print 'prg 1 #############################################################'
+#print indi_hist, '<-- full list of indi histograms'
+#-----------------
+
+
+#female be andoido{'BlackberryPlaybook': 4.4654818254889704e-05, 'IPad': 0.000524694114494954, 'Windows': 0.9408100384031437, 'unknown': 0.00011163704563722425, 'ChromeOS': 5.581852281861213e-05, 'IPhone': 0.00024560150040189334, 'Linux': 0.008272305081718317, 'Macintosh': 0.04993525051353041}
+#{'BlackberryPlaybook': 2.6393929396238866e-05, 'IPad': 0.0005366765643901902, 'Windows': 0.9364038271197624, 'unknown': 0.00010557571758495546, 'ChromeOS': 3.9590894094358296e-05, 'IPhone': 0.0003035301880567469, 'Linux': 0.006748047948971736, 'Android': 1.759595293082591e-05, 'Macintosh': 0.05581876168481249}
+#{'BlackberryPlaybook': 1.4583849844681999e-05, 'IPad': 0.000546894369175575, 'Windows': 0.9335122285580948, 'unknown': 0.000102086948912774, 'ChromeOS': 2.9167699689363997e-05, 'IPhone': 0.00034272047135002696, 'Linux': 0.005724161064037685, 'Android': 2.9167699689363997e-05, 'Macintosh': 0.05969898933920576}
+#making conditional gender histograms here
+labelfile=open('cookie_table_of_labels.csv','r')
+all_labels = labelfile.readlines()
+labelfile.close()
+gender_labels=all_labels[1].split(',')
+gender_labels[-1]=gender_labels[-1][:-2]
+#gender_labels=gender_labels[:-1]
+cond_hists=dict(zip(gender_labels,range(len(gender_labels))))
+for i in gender_labels:
+    val_table=make_value_table('cookies_gender_'+i+'.csv')
+    cond_hists[i]=make_histograms(val_table) 
+#    print cond_hists[i], '<--histograms for '+i
+#-----------------
+def does_bayes_work_on_line(dataline):
+    pass
+    
+intestfile=open('cookies_test.csv','r')
+testcontents = intestfile.readlines()
+intestfile.close()
+data_dim =len(testcontents[0].split(','))
+foo=False
+indi_hist2=dict(zip(['male','female'],[0,0]))
+indi_hist2['male']=indi_hist[1]['male']/indi_hist[1]['female']+indi_hist[1]['male']
+indi_hist2['female']=indi_hist[1]['female']/indi_hist[1]['female']+indi_hist[1]['male']
+model_coef=[0]+[1.005**i for i in range(-50,50)]+[1000]
+#model_coef=[0]+[i*1/float(8) for i in range(17)]+[4]
+maletpcounter=dict(zip(model_coef,[0 for i in range(len(model_coef))]))
+femaletncounter=dict(zip(model_coef,[0 for i in range(len(model_coef))]))
+fail_counter=dict(zip(model_coef,[0 for i in range(len(model_coef))]))
+for l in model_coef:
+    guessdist=Counter()
+    truedist=Counter()
+    full_counter=0
+    for i in testcontents:
+        dataline = i.split(',')
+        dataline[-1]=dataline[-1][:-2]
+        if dataline[2]=='unknown': continue
+        full_counter+=1
+        prob_prods=dict(zip(gender_labels,len(gender_labels)*[1]))
+        prob_anti=dict(zip(gender_labels,len(gender_labels)*[1]))
+        prob_list=dict(zip(gender_labels,[[] for i in range(len(gender_labels))]))
+        guess_gender='spam'
+        true_gender=dataline[2]
+        for j in gender_labels:
+            for k in range(1,data_dim):
+                if k in [1,2,3,4,5,6,7]: continue
+                try:
+                    prob_prods[j]*=cond_hists[j][k-1][dataline[k]]/indi_hist[k-1][dataline[k]]                    
+                    prob_list[j].append(cond_hists[j][k-1][dataline[k]]/indi_hist[k-1][dataline[k]])
+                except KeyError:
+                    #print 'keyError. Tru gender ',true_gender
+                    print ' wtf keyError. Tru gender ',true_gender,j,full_counter
+                    print dataline
+                    print dataline[k]
+                    print cond_hists[j][k-1]
+                    print gender_labels
+                    prob_prods[j]*=0
+                    prob_list[j].append(0)
+                    foo=True
+                    sys.exit() #temporary
+                except:
+                    print '########### nezinoma klaida eiluteje',i
+                    raise
+            prob_prods[j]*=indi_hist2[j]
+            prob_list[j].append(indi_hist2[j])
+
+        for j in gender_labels:
+            if foo==False and prob_prods[j]==0:
+                pass
+        if prob_prods['male']>=l:
+            guess_gender='male' 
+        else:
+            guess_gender='female'
+        if guess_gender==true_gender:
+            if true_gender=='male':
+                maletpcounter[l]+=1
+            elif true_gender=='female':
+                femaletncounter[l]+=1
+            else:
+                print  'Error. true gender not in gender list.'
+                sys.exit()
+        else:
+            fail_counter[l]+=1
+##        print ' '
+##        print full_counter,' fullcounter'
+##        print maletpcounter[l]+femaletncounter[l], 'success counter'
+##        print fail_counter[l],' fail_counter'
+            
+        guessdist[guess_gender]+=1
+        truedist[true_gender]+=1
+    print ' '
+    print l, ' l here'
+    print full_counter,' full counter'
+    print maletpcounter[l]+femaletncounter[l],' success counter'
+    print fail_counter[l],' fail counter'
+    print float(maletpcounter[l]+femaletncounter[l])/full_counter, '<-- success rate'
+    print guessdist,' spejimas'
+    print truedist,'tikrasis'
+
+
+print truedist['male']
+
+
+
+#recall=dict(zip(model_coef,[0 for i in range(len(model_coef))]))
+
+
+fpr = [ 0 for i in model_coef]
+recall = [ 0 for i in model_coef]
+precision = [ 0 for i in model_coef]
+
+for i in range(len(model_coef)):
+    try:
+        fpr[i]= float(truedist['female']-femaletncounter[model_coef[i]])/(truedist['female'])
+    except ZeroDivisionError:
+        fpr[i]=1
+    try:
+        recall[i]= float(maletpcounter[model_coef[i]])/(truedist['male'])
+    except ZeroDivisionError:
+        recall[i]=1
+    try:
+        precision[i]=float(maletpcounter[model_coef[i]])/(truedist['female']-femaletncounter[model_coef[i]]+maletpcounter[model_coef[i]])
+    except ZeroDivisionError:
+        precision[i]=1
+    
+##for i in model_coef:
+##    print (truedist['female']-femaletncounter[i]+maletpcounter[i]), 'asdfsfadfad', maletpcounter[i]
+##    print truedist['female'],'-',femaletncounter[i],'+',maletpcounter[i], '--------------'
+##    print femaletncounter[i]
+##    print maletpcounter[i]
+##    print truedist['female']
+
+auc=abs(0.5*sum([((fpr[i]-fpr[i-1])*(recall[i]+recall[i-1])) for i in range(1,len(model_coef))]))
+    
+
+plotROC(fpr, recall,True, 'NaiveAllAuc'+str(auc) )
+saveFalloutsAndRecallsToFile(fpr, recall,'NaiveAllAuc'+str(auc))
+
+
+print 'AUC'
+print auc
+
+
+
+##print 'recall'
+##for i in range(len(model_coef)):
+##    print recall[i]
+##print 'precision'
+##for i in range(len(model_coef)):
+##    print precision[i]
+##print ' FPR'
+##for i in range(len(model_coef)):
+##    print fpr[i]    
+##print 'coefficient L'
+##for i in range(len(model_coef)):
+##    print model_coef[i]
+#print recall, ' recall'
+#print precision, ' precision'
