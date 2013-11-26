@@ -1,0 +1,99 @@
+
+#making clustering for uvd_bin and dom1,dom2,dom3
+import sys
+import csv
+#6 14 16 18
+
+
+cluster_coef=1.2
+inf=open('cookie_table_of_labels.csv','r')
+labelcon=inf.readlines()
+inf.close()
+
+
+feats=[3,7,8,9]
+clusters=dict()
+for feat in range(len(labelcon)):
+    if feat not in feats: continue
+    clusters[feat]=dict()
+    for g in ['male','female']:
+        inf=open(g+'_lifts.csv','r')
+        contents=inf.readlines()
+        inf.close()
+        clusters[feat][g]=[] 
+        valline = contents[feat*2].split(',')
+        liftline = contents[feat*2+1].split(',')
+        liftline[-1]=liftline[-1][:-2]
+        valline[-1]=valline[-1][:-2]
+        if len(valline)!=len(liftline):
+            print 'Error. Incoherent lengths of lines in lift file.'
+            sys.exit()
+        for i in range(len(valline)):
+            
+            if float(liftline[i])>cluster_coef:
+                clusters[feat][g].append(valline[i])
+
+    if list(set(clusters[feat]['male'])&set(clusters[feat]['female']))!=[]:
+        print 'Error. There are values with significant lifts for both male and female: '
+        print list(set(clusters[feat]['male'])&set(clusters[feat]['female']))
+        sys.exit()
+    labelline=labelcon[feat].split(',')
+    labelline[-1]=labelline[-1][:-2]
+    clusters[feat]['none']=list(set(labelline)-set(clusters[feat]['male'])-set(clusters[feat]['female']))
+##    print list(set(labelline)-set(clusters[feat]['male'])-set(clusters[feat]['female']))
+##    print set(clusters[feat]['female'])
+##    print set(clusters[feat]['male'])
+
+
+inf=open('uvd_cookies.csv','r')
+contents = inf.readlines()
+inf.close()
+height_of_file=len(contents)
+outcont=[]
+
+for i in range(height_of_file):
+    outcont.append([])
+    curline=contents[i].split(',')
+    curline[-1]=curline[-1][:-2]
+    for feat in feats:
+        yes=0
+        for j in clusters[feat]:
+            if curline[feat+1] in clusters[feat][j]:
+                yes=1
+                curline[feat+1]= j
+        if yes==0:
+            print 'Error. value "'+curline[feat+1]+'" is in none of the 3 clusters'
+            sys.exit()
+    outcont[i]=curline
+'''put these lines here cuz i cant open 'converted_cookies.csv' for read and write at ths same time in case i wanted to
+in general , a better idea is to write the output into a different file and then rename it manually afterwards'''
+outf=open('uvd_cookies.csv','w')
+writer=csv.writer(outf)
+for i in range(height_of_file):
+    writer.writerow( outcont[i])
+
+outf.close()
+
+##for i in labelcon:
+##    curline=i.split(',')
+##    print curline[0]
+
+
+
+#kodel timeinterval prasideda nuo 101 valandos ?
+
+
+##    for i in range(len(contentsm)):
+##        if i in [6,7]:
+##            for j in range(10):
+##                curline=contentsm[i].split(',')
+##                print curline[j], i
+##        else:
+##            continue
+    
+
+
+
+for i in [3,8,9,10]:
+    pass
+print 'done'
