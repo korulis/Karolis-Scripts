@@ -76,9 +76,9 @@ foo=False
 indi_hist2=dict(zip(['male','female'],[0,0]))
 indi_hist2['male']=indi_hist[1]['male']/indi_hist[1]['female']+indi_hist[1]['male']
 indi_hist2['female']=indi_hist[1]['female']/indi_hist[1]['female']+indi_hist[1]['male']
-model_coef=[1.2**i for i in range(-4,5)]
-model_coef=[i*1/float(8) for i in range(24+1)]
-model_coef=[0]+[1.1**i for i in range(-20,20)]+[1000]
+#model_coef=[1.1**i for i in range(-4,5)]
+#model_coef=[i*1/float(8) for i in range(24+1)]
+model_coef=[0]+[1.03**i for i in range(-50,50)]+[1000]
 maletpcounter=dict(zip(model_coef,[0 for i in range(len(model_coef))]))
 femaletncounter=dict(zip(model_coef,[0 for i in range(len(model_coef))]))
 fail_counter=dict(zip(model_coef,[0 for i in range(len(model_coef))]))
@@ -100,8 +100,10 @@ for l in model_coef:
         true_gender=dataline[2]
         for j in gender_labels:
             for k in range(1,data_dim):
+                #7 livas, 3lieavas 5,6
                 #7057620,55,female,529,5,10,0,0.5,go.tv2.dk,samvirke.dk,www.degulesider.dk
-                if k in [1,2]+[4,5,6,7,8,9,10]: continue
+                nameString = 'NaiveUvd4_8_9_10Auc'
+                if k in [1,2]+[3,5,6,7]: continue
                 try:
                     if cond_hists[j][k-1][dataline[k]]==0 and indi_hist[k-1][dataline[k]]==0:
                         prob_prods[j]*=1
@@ -183,9 +185,10 @@ for i in range(len(model_coef)):
         precision.append(1)
                                                    
 auc=abs(0.5*sum([((fpr[i]-fpr[i-1])*(recall[i]+recall[i-1])) for i in range(1,len(model_coef))]))
-plotROC(fpr, recall,True, 'NaiveAdjustedAllAuc'+str(auc) )
-plotRecallVSPrecision(recall, precision, True, 'NaiveAdjustedAllAuc'+str(auc) )
-saveFalloutsRecallsAndPrecisionsToFile(fpr, recall,precision, 'NaiveAdjustedAllAuc'+str(auc))
+nameString = nameString+str(auc)
+plotROC(fpr, recall,True,  nameString)
+plotRecallVSPrecision(recall, precision, True, nameString )
+saveFalloutsRecallsAndPrecisionsToFile(fpr, recall,precision, nameString)
 
 
 
