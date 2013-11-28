@@ -273,10 +273,6 @@ def printTopLifts(topNumber, outFileName, histFileName='HistOfDoms.csv', histMal
         topDomainsFemaleNo[i]=indicesFemaleNo[-(i+1)]
         topDomainsFemaleYes[i]=indicesFemaleYes[-(i+1)]
     
-##        topDomainsMaleNo
-##        topDomainsMaleYes
-##        topDomainsFemaleNo
-##        topDomaonsFemaleYes
     
 ##    print topDomainsMaleNo
 ##    print topDomainsFemaleYes
@@ -339,23 +335,24 @@ def getBayesResults(params, genderDist, infname='test_ids_with_their_domains.csv
             bprob*=1
         except:
             raise
-        try:
-            for jk in hist['domIndex']:
-                j=int(jk)
-                if jk in i[2:]:
-                    p=condHist['female']['yes'][j]/hist['yes'][j]
-                else:
-                    p=condHist['female']['no'][j]/hist['no'][j]
-                if p>5:
-                    print p, ' dis is a big p.. or small'
-                    sys.exit()
-                fprob*=p
-        except ZeroDivisionError: #no information gainned
-            fprob*=1
-        except:
-            raise
+##        try:
+##            for jk in hist['domIndex']:
+##                j=int(jk)
+##                if jk in i[2:]:
+##                    p=condHist['female']['yes'][j]/hist['yes'][j]
+##                else:
+##                    p=condHist['female']['no'][j]/hist['no'][j]
+##                if p>5:
+##                    print p, ' dis is a big p.. or small'
+##                    sys.exit()
+##                fprob*=p
+##        except ZeroDivisionError: #no information gainned
+##            fprob*=1
+##        except:
+##            raise
         for j in params:
-            if bprob>=j*fprob:
+#            if bprob>=j*fprob:
+            if bprob>=j:
                 if trueGender=='male':
                     tp[j]+=1
                 else:
@@ -381,18 +378,6 @@ def getBayesResults(params, genderDist, infname='test_ids_with_their_domains.csv
             sys.exit()
     inf.close()
     return precision, recall , fpr    
-##
-##def plotROC(fpr,recall,aucstr=''):
-##    p1=plot(fpr,recall)
-##    xlabel('FPR')
-##    ylabel('Recall')
-##    title('ROC curve')
-##    grid(True)
-##    t=arange(0,1.1,0.5)
-##    p2=plot(t,t,'r--')
-##    legend([p2],['ROC with auc='+aucstr+'.png'])
-##    savefig('ROC with auc='+aucstr+'.png')
-##    show()  
 
 
 
@@ -409,7 +394,8 @@ for i in range(10):
     res=getBayesResults(params, gDist, 'training_ids_with_their_domains.csv')
     print getAUC(res[2].values(),res[1].values())
     aa=getAUC(res[2].values(),res[1].values())
-    nameString = '00otherNaiveAllDomainsEndInt'+str(i)+'AUC'+str(aa[0])
+    #nameString = '00otherNaiveAllDomainsEndInt'+str(i)+'AUC'+str(aa[0])
+    nameString = 'NaiveAllDomainsEndInt'+str(i)+'AUC'+str(aa[0])
     plotROC(res[2].values(),res[1].values(), shouldShow = False , aucstr = nameString)
     plotRecallVSPrecision(res[1].values(), res[0].values(), shouldShow = False , aucstr = nameString)
     saveFalloutsRecallsAndPrecisionsToFile(res[2].values(),res[1].values(),res[0].values(), aucstr = nameString)
@@ -419,18 +405,8 @@ aucc1=average(auc1)
 aucc2=average(auc2)
 print aucc1,aucc2
 printTopLifts(10,'TopLifts.csv')
-other=[0.7836644109603883, 0.78409038090151961]
-#usual 0.788951664252      0.788952657117
-
-
-##separateTestAndTraining('ids_with_their_domains.csv',0)
-##separateGender('training_ids_with_their_domains.csv')
-##gDist=makeHistogramNonDom('HistOfNonDomFeats.csv',1,'training_ids_with_their_domains.csv')[0]
-##params=getModelParameters()
-##res=getBayesResults(params, gDist, 'training_ids_with_their_domains.csv','bayes_results.csv')
-##print getAUC(res[2].values(),res[1].values())
-##plotROC(res[2].values(),res[1].values(),str(getAUC(res[2].values(),res[1].values())))
-
+other=[0.78677599559   0.787171040255]
+#usual 0.788951664252  0.788952657117
 
 
 
